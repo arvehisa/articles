@@ -1,0 +1,35 @@
+{
+  "title": "Amazon Redshift ハンズオン",
+  "closed": true,
+  "archived": true,
+  "created_at": "2024-03-31",
+  "comments": [
+    {
+      "author": "zhizhiarv",
+      "created_at": "2024-03-31",
+      "body_markdown": "https://pages.awscloud.com/JAPAN-event-OE-Hands-on-for-Beginners-Analytics-2022-confirmation_790.html\n\nHands on for Beginners の Analytics 編をやっていきます。"
+    },
+    {
+      "author": "zhizhiarv",
+      "created_at": "2024-03-31",
+      "body_markdown": "![](https://storage.googleapis.com/zenn-user-upload/99233f01c590-20240331.png)\n![](https://storage.googleapis.com/zenn-user-upload/7c6f49afd9f2-20240331.png)"
+    },
+    {
+      "author": "zhizhiarv",
+      "created_at": "2024-03-31",
+      "body_markdown": "Redshift を作成します。\nVPC の設定が必要で、IP アドレスの問題で引っかかったので時間がなく一旦ビデオを見るだけにした。\n\nS3 にファイルをアップロード。\n\nAWS コンソールのRedshift のクエリエディタからDB接続\n![](https://storage.googleapis.com/zenn-user-upload/a4b27f239351-20240331.png)\n\n作成されたRedshiftは空なものなので、テーブルを作成する。\n![](https://storage.googleapis.com/zenn-user-upload/1ca59904ff76-20240331.png)\n![](https://storage.googleapis.com/zenn-user-upload/9ffff92a7546-20240331.png)\nSQL は一つしか実行されません。複数テーブルを一回で作成することができない。\n"
+    },
+    {
+      "author": "zhizhiarv",
+      "created_at": "2024-03-31",
+      "body_markdown": "![](https://storage.googleapis.com/zenn-user-upload/a872b34099e0-20240331.png)\n左側で、テーブルが3つ作られていることがわかる。\n\nS3のファイルをコピーコマンドでRedshiftにロード\nCOPY のあとはテーブル名\n![](https://storage.googleapis.com/zenn-user-upload/b3979a362050-20240331.png)\n![](https://storage.googleapis.com/zenn-user-upload/58f6a43977ae-20240331.png)\n",
+      "body_updated_at": "2024-03-31"
+    },
+    {
+      "author": "zhizhiarv",
+      "created_at": "2024-03-31",
+      "body_markdown": "```\nSELECT sum(qtysold) \nFROM   sales, date \nWHERE  sales.dateid = date.dateid \nAND    caldate = '2008-01-05';\n```\nJOIN 書かなくて良いんだ…\n\nこれもクエリエディタで。",
+      "body_updated_at": "2024-03-31"
+    }
+  ]
+}
