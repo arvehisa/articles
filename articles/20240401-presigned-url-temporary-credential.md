@@ -1,52 +1,69 @@
 ---
-title: "AWS CLI SSOとPresigned URLを使用する際の注意点"
+title: "S3 Presigned URL 有効期限の注意点"
 emoji: "🫢"
 type: "tech"
 topics:
   - "aws"
   - "s3"
   - "sso"
-published: false
-published_at: "2024-04-01 00:44"
+  - "cloudshell"
+published: true
+published_at: "2024-04-08 11:00"
 ---
 
 # はじめに
-AWS SSO はシングルサインオンを実現して、AWS リソースへのアクセス管理を容易にする便利な機能です。
-AWS CLI v2 では、SSO で一時的な認証情報でログインすることも可能です。
-ただ、一時的な認証情報を使用することになるため、S3 Presigned URL を発行するときには、認証情報が切れたら発行された URL も失効する問題に遭遇したので説明します。
-
-# AWS IAM Identity Center (SSO)
-AWS SSOは、一度の認証でさまざまなAWSアカウントやサービスにアクセスできるシングルサインオンの仕組みを提供します。IAM Identity Center（SSO）を使用して一時的な認証情報でログインすることで、アクセスキーとシークレットキーの管理が不要になり、アクセス管理とセキュリティが向上します。
-
-AWS CLI を SSO で認証させるのに興味がある方は下記見てみると良いかもです。
-https://qiita.com/oiz-y/items/d01a193be93789b3ab43
-https://dev.classmethod.jp/articles/aws-cli-for-iam-identity-center-sso/
+S3 の Presigned URL を手動で発行するときありませんか？
+私はたまに、Presigned URL を利用して資料の共有をしています。
+今回は私は AWS SSO でログインした AWS CLI で発行した Presigned URL の有効期限が設定したものより短い現象に遭遇しましたので、Presigned URL の有効期限について注意点を共有します。
 
 # Presigned URL
-Presigned URLは、AWS S3オブジェクトへの一時的なアクセス権を付与するために使用されます。通常、Presigned URLには有効期限が設定され、その期間中はURLを使ってオブジェクトにアクセスできます。
+Presigned URL は S3 Object への一時的なアクセス権を付与するために使用されるものです。
+通常、Presigned URL には有効期限が設定され、その期間中に URL を使って S3 Object にアクセスできます。
 
-会社の規定上 S3 バケットを Public にしてはいけないため、大きいファイルを共有するときには S3 にアップロードして S3 Presigned URL で 7日間有効で共有したいと思いました。
+# Presigned URL の有効期限
+実は、Presigned URL の有効期限は
+1. Presigned URL を発行するときに指定する有効期限
+2. Presigned URL を発行したクレデンシャルの有効期限
 
-ローカルで Presigned URL を下記のコマンドで発行した。
+という2つのものと関係しています。どちらか一つが切れたら、S3 Object にアクセスできなくなります。
 
-```
+## 発行時に指定する有効期限について
+Presigned URL はコンソールで発行する際には、最大 12 時間の有効期限を指定することが可能。
+プログラム的に CLI もしくは CDK で発行する際には、最大 7 日間の有効期限を指定することが可能。
+
+### コンソールで発行する方法
+![コンソールで S3 Presigned URL を発行する方法](/images/s3-presigned-url/01_console.png)
+![S3 Presigned URL 有効期限の指定](/images/s3-presigned-url/02_console_expire_time.png)
+最大 7 日間の有効期限を指定可能
+
+### CLI で発行する方法
+```bash
 aws s3 presign s3://{bucket_name}/{file_name} --expires-in 604800
 ```
+`--expires-in` のオプションで有効期限を指定する。最大は 604800 秒、つまり 7 日間まで指定可能。
 
-本来これで発行した URL は 7 日間有効になるはずだが、数時間後には `ExpiredToken error` というのになってしまった。
-理由を調べたら、Presigned URL を発行するときに使うクレデンシャルが失効すれば、Presigned URLの残りの有効期限に関係なく即座に失効するとのことらしい。
+## クレデンシャルの有効期限
+もう一つ関連するのは発行時に使うクレデンシャルの有効期限です。
+発行時に使うクレデンシャルが無効になったら、設定した Presigned URL の有効期限に達しているかにかかわらず URL は無効になります。
 
-CLI は SSO でログインしていたため一時的な認証情報を利用していた。そのため、すぐにクレデンシャルが失効してしまったのです。
+例：
+- Cloudshell で CLI を利用している場合
+- ローカルで SSO で CLI にログインしている場合
 
-結果的に、AWS CLI では IAM ユーザーで発行したアクセスキーとシックレートキーで認証し直して Presigned URL を発行した。
+などは、IAM ユーザーのような永続的なクレデンシャルを使っているわけではなく、数時間しか有効ではない一時的なクレデンシャルが利用される。
+その場合、Cloudshell のセッションが終了した、またはローカルの SSO セッションが修了した場合、Presigned URL の期限を 7 日間に設定したにもかかわらず数時間で無効になる現象が起こります。
 
-# 終わりに
-こういう問題があるので、Presigned URL を発行するとき、セッション有効期限と Presigned URL の有効期限を両方気にしないといけないのです。
-ローカルでPresigned URL発行する際にはこのような注意点があることを認識するのも大事です。
+それは、SDK でプログラム的に発行するときも同じです。ただ、SDK でアプリケーション内で組み込んで利用する場合は短い有効期限を設定して、利用するたびに発行するケースが多いためあまり問題になることは少ないでしょう。
 
-基本これからは
-- セッションの有効期限を考慮し、Presigned URLの有効期限を設定する（どうしても短い期間になる）
-- マネジメントコンソールで Presigned URL を作成する（最大12時間有効）
-- ローカルで IAM ユーザーを利用して長期的に有効なクレデンシャルを利用して最大 7 日間有効の Presigned URL を作成する
+私は今回ローカルで SSO で CLI にログインして発行していましたが、思ったよりすぐ期限切れになり `ExpiredToken error` となりました。
+参考：SSO CLI ログインについて
+https://dev.classmethod.jp/articles/aws-cli-for-iam-identity-center-sso/
 
-でいきたいと思います。
+# まとめ
+Presigned URL の有効期限は、発行時に設定した有効期限と関連するだけでなく、発行時に利用したクレデンシャルの有効期限にも関連します。
+一時的なクレデンシャルを利用して発行する際には有効期限には注意しないといけないですね。
+
+- コンソールで最大 12 時間の Presigned URL を発行
+- IAM ユーザのクレデンシャルで CLI 等で発行する
+
+数時間以上有効など、長い有効期間を設定したい場合は上記の方法を検討しましょう。
