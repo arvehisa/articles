@@ -148,6 +148,7 @@ https://support.apple.com/en-us/102171
 私の場合、下記のように Output という複数出力装置の設定をした。
 ![multi-output-device](/images/transcription/image-6.png)
 ![multi-output-device](/images/transcription/image-5.png)
+常に、出力デバイスは Output に指定する必要があります。そうすることにより、システム音声の出力は Blackhole にも流してくれます。
 
 ### 2. 仮想デバイス機器セット (Aggregated Device)の作成
 目的は Blackhole（PC 出力音声）とマイクの入力音声を一つのデバイスにまとめるため。
