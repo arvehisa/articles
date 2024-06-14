@@ -11,19 +11,20 @@ published: false
 
 text-to-sql は自然言語で SQL クエリに変換するということです。今回は Amazon Bedrock を使って、簡単に text-to-sql を試せる Streamlit アプリを作りました。
 
+# こんな感じ
+イメージはこのようなものです。
+![text-to-sql-image](/images/text-to-sql/01_text-to-sql-image.png)
+
 # できること
 - Instruction の部分に指示を入力してクエリすると、SQL が生成され、データベースにクエリの結果が DataFrame として表示されます。
 - 生成された SQL を自然言語で説明します。生成されたものが意図に沿うものかを簡単に判別するためです。
 - 生成された SQL の表示と編集、編集後のもので再度クエリできます。
 - データベーススキーマを表示します。
 
-イメージはこのようなものです。
-![text-to-sql-image](/images/text-to-sql/01_text-to-sql-image.png)
-
 # コード
 
 コードはこちらをご参照ください。試しにやってみただけなので割と適当なのですが、試せます。
-そして最新の Bedrock Converse API を使っていますので、モデルを簡単に変えたり比較したりできます。
+最新の Bedrock Converse API を使っていますので、モデルを簡単に変えたり比較したりできます。
 （DB 接続文字列 と AWS CLI のセットアップが必要です）
 https://github.com/arvehisa/text-to-sql-bedrock/blob/main/text-to-sql-bedrock.py
 
