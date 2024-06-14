@@ -3,7 +3,7 @@ title: "text-to-sql を試してみた"
 emoji: "🔖"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["sql","llm","aws","bedrock"]
-published: false
+published: true
 ---
 
 
